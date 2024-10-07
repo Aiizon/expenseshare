@@ -39,7 +39,7 @@ export function eventReducer(item, action) {
                 fetch(`${apiUrl}/events`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/ld+json',
                     },
                     body: JSON.stringify(newItem),
                 });
