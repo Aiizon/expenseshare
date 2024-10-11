@@ -9,26 +9,25 @@ export function EventProvider({children}) {
     const [event, dispatch] = useReducer(eventReducer, {name: '', slug: '', persons: [], expenses: []});
 
     useEffect(() => {
-        if (event.name && !event.isFetching) {
-            fetch(`${apiUrl}/events`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/ld+json',
-                },
-                body: JSON.stringify(event),
-            });
+        async function createEvent() {
+            if (event.name && event.isCreating) {
+                await fetch(`${apiUrl}/events`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/ld+json',
+                    },
+                    body: JSON.stringify({
+                        name: event.name,
+                        slug: event.slug,
+                        persons: event.persons,
+                        expenses: event.expenses,
+                    }),
+                })
+                dispatch({type: 'creationComplete'});
+            }
+            createEvent();
         }
     }, [event]);
-
-    const fetchEvent = async (slug) => {
-        const response = await fetch(`${apiUrl}/events/${slug}`);
-        if (404 === response.status) {
-            return dispatch({ type: 'error', payload: 'Cet évènement n\'existe pas, veuillez réessayer.' });
-        }
-        const eventData = await response.json();
-        dispatch({ type: 'fetch', payload: eventData });
-        dispatch({ type: 'clearError' });
-    };
 
     return (
         <EventContext.Provider value={event}>
@@ -37,6 +36,24 @@ export function EventProvider({children}) {
             </EventDispatchContext.Provider>
         </EventContext.Provider>
     );
+}
+
+export async function fetchEvent(dispatch, name) {
+    const slug = slugify(name);
+    const response = await fetch(`${apiUrl}/events/${slug}`);
+    if (404 === response.status) {
+        return dispatch({ type: 'error', payload: 'Cet évènement n\'existe pas, veuillez réessayer.' });
+    }
+    const eventData = await response.json();
+    dispatch({ type: 'fetch', payload: eventData });
+    dispatch({ type: 'clearError' });
+
+    return {
+        name: eventData.name,
+        slug: eventData.slug,
+        persons: eventData.persons,
+        expenses: eventData.expenses,
+    };
 }
 
 export function useEvent() {
@@ -53,16 +70,19 @@ export function eventReducer(item, action) {
         {
             return {
                 name: action.payload.name.toString(),
-                slug: slugify(action.payload.name.toString())
+                slug: slugify(action.payload.name.toString()),
+                isCreating: true,
             };
         }
 
         case 'fetch':
-            return { ...item, ...action.payload, isFetching: false };
+            return { ...item, ...action.payload, isCreating: false };
         case 'error':
-            return { ...item, error: action.payload };
+            return { error: action.payload, isCreating: false };
         case 'clearError':
             return { ...item, error: null };
+        case 'creationComplete':
+            return { ...item, isCreating: false };
         default:
             throw new Error(`Unknown action: ${action.type}`);
     }
