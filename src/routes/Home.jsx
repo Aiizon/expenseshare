@@ -1,4 +1,4 @@
-import {useEvent, useEventDispatch, fetchEvent} from "../context/EventProvider.jsx";
+import {useEvent, useEventDispatch, fetchEvent, createEvent} from "../context/EventProvider.jsx";
 import Input from "../components/Input.jsx";
 import {useState} from "react";
 import {redirect} from "react-router-dom";
@@ -8,8 +8,8 @@ export default function Home() {
     const dispatch = useEventDispatch();
     const event = useEvent();
 
-    const handleEventCreation = () => {
-        dispatch({type: 'create', payload: input});
+    const handleEventCreation = async () => {
+        await createEvent(dispatch, input);
         return redirect('/details/' + event.slug);
     };
 
