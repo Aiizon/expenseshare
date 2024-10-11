@@ -1,6 +1,7 @@
 import {useEvent, useEventDispatch, fetchEvent} from "../context/EventProvider.jsx";
 import Input from "../components/Input.jsx";
 import {useState} from "react";
+import {redirect} from "react-router-dom";
 
 export default function Home() {
     const [input, setInput] = useState('');
@@ -9,10 +10,12 @@ export default function Home() {
 
     const handleEventCreation = () => {
         dispatch({type: 'create', payload: input});
+        return redirect('/details/' + event.slug);
     };
 
     const handleEventSearch = async () => {
         await fetchEvent(dispatch, input);
+        return redirect('/details/' + event.slug);
     };
 
     return (
