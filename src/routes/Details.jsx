@@ -1,15 +1,16 @@
 import {useEvent, useEventDispatch, fetchEvent} from "../context/EventProvider.jsx";
-import {redirect, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 
 export default function Details() {
     const dispatch = useEventDispatch();
     const event = useEvent();
     const {slug} = useParams();
+    const navigate = useNavigate();
 
     const fetch = async () => {
         await fetchEvent(dispatch, slug);
         if (event.error) {
-            return redirect('/');
+            navigate('/');
         }
     }
     fetch();

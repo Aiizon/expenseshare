@@ -1,21 +1,22 @@
 import {useEvent, useEventDispatch, fetchEvent, createEvent} from "../context/EventProvider.jsx";
 import Input from "../components/Input.jsx";
 import {useState} from "react";
-import {redirect} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 export default function Home() {
     const [input, setInput] = useState('');
     const dispatch = useEventDispatch();
     const event = useEvent();
+    const navigate = useNavigate();
 
     const handleEventCreation = async () => {
         await createEvent(dispatch, input);
-        return redirect('/details/' + event.slug);
+        navigate('/details/' + event.slug);
     };
 
     const handleEventSearch = async () => {
         await fetchEvent(dispatch, input);
-        return redirect('/details/' + event.slug);
+        navigate('/details/' + event.slug);
     };
 
     return (
