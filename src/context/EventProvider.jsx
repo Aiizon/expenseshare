@@ -1,4 +1,4 @@
-import {createContext, useContext, useReducer} from "react";
+import {createContext, useContext, useEffect, useReducer} from "react";
 import slugify from "../utils/slugify.js";
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -7,6 +7,24 @@ const EventDispatchContext = createContext(null);
 
 export function EventProvider({children}) {
     const [event, dispatch] = useReducer(eventReducer, {name: '', slug: '', persons: [], expenses: []});
+
+    useEffect(() => {
+        if (event.name && !event.isFetching) {
+            fetch(`${apiUrl}/events`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/ld+json',
+                },
+                body: JSON.stringify(event),
+            });
+        }
+    }, [event]);
+
+    const fetchEvent = async (eventId) => {
+        const response = await fetch(`${apiUrl}/events/${eventId}`);
+        const eventData = await response.json();
+        dispatch({ type: 'fetch', payload: eventData });
+    };
 
     return (
         <EventContext.Provider value={event}>
@@ -26,26 +44,20 @@ export function useEventDispatch() {
 }
 
 export function eventReducer(item, action) {
-    console.log(item);
     switch (action.type) {
         case 'create':
-            {
-                const newItem = {
-                    ...item,
-                    name: action.payload.name.toString(),
-                    slug: slugify(action.payload.name.toString())
-                };
+        {
+            return {
+                name: action.payload.name.toString(),
+                slug: slugify(action.payload.name.toString())
+            };
+        }
 
-                fetch(`${apiUrl}/events`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/ld+json',
-                    },
-                    body: JSON.stringify(newItem),
-                });
+        case 'fetch':
+        {
+            return { ...item, ...action.payload, isFetching: false };
+        }
 
-                break;
-            }
         default:
             throw new Error(`Unknown action: ${action.type}`);
     }
