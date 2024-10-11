@@ -1,4 +1,5 @@
 import {Link, Outlet} from "react-router-dom";
+import {EventProvider} from "./context/EventProvider.jsx";
 
 export default function Root() {
     return (
@@ -17,10 +18,11 @@ export default function Root() {
                     </div>
                 </div>
             </header>
-
-            <main className="container mx-auto px-4">
-                <Outlet />
-            </main>
+            <EventProvider>
+                <main className="container mx-auto px-4">
+                    <Outlet/>
+                </main>
+            </EventProvider>
         </>
     );
 }
