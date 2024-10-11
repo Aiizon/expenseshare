@@ -5,7 +5,7 @@ export default function Input({ type, placeholder, value, onChange }) {
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            className="border border-gray-300 rounded-md p-2"
+            className="w-3/4 border border-gray-300 rounded-md p-2"
         />
     );
 }

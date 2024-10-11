@@ -20,10 +20,14 @@ export function EventProvider({children}) {
         }
     }, [event]);
 
-    const fetchEvent = async (eventId) => {
-        const response = await fetch(`${apiUrl}/events/${eventId}`);
+    const fetchEvent = async (slug) => {
+        const response = await fetch(`${apiUrl}/events/${slug}`);
+        if (404 === response.status) {
+            return dispatch({ type: 'error', payload: 'Cet évènement n\'existe pas, veuillez réessayer.' });
+        }
         const eventData = await response.json();
         dispatch({ type: 'fetch', payload: eventData });
+        dispatch({ type: 'clearError' });
     };
 
     return (
@@ -54,10 +58,11 @@ export function eventReducer(item, action) {
         }
 
         case 'fetch':
-        {
             return { ...item, ...action.payload, isFetching: false };
-        }
-
+        case 'error':
+            return { ...item, error: action.payload };
+        case 'clearError':
+            return { ...item, error: null };
         default:
             throw new Error(`Unknown action: ${action.type}`);
     }
