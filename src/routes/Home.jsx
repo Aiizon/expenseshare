@@ -19,6 +19,8 @@ export default function Home() {
         navigate('/details/' + event.slug);
     };
 
+    // @todo: centraliser les deux champs, avoir les boutons recherche & création de chaque coté (+ erreur recherche en dessous)
+
     return (
         <div className='flex flex-col grow justify-between gap-4'>
             <div className='flex flex-col gap-4'>
