@@ -3,7 +3,8 @@ import {
     useEventDispatch,
     fetchEvent,
     addPersonToEvent,
-    addExpenseToEvent
+    addExpenseToEvent,
+    updatePaidStatus
 } from "../context/EventProvider.jsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
@@ -28,7 +29,6 @@ export default function Details() {
     const getCategories = async () => {
         const response = await fetch(`${apiUrl}/categories`);
         const data = await response.json();
-        console.log(response)
         setCategories(data.member);
     };
 
@@ -48,6 +48,13 @@ export default function Details() {
     const displayAddExpenseModal = () => {
         const modal = document.getElementById('addExpenseModal');
         modal.classList.toggle('hidden');
+    }
+
+    const handlePaidStatusChange = async e => {
+        const id = e.target.id;
+        const checked = e.target.checked;
+        const expense = event.expenses.find(expense => id === expense['@id']);
+        await updatePaidStatus(dispatch, expense, checked);
     }
 
     if (isLoading) {
@@ -76,7 +83,6 @@ export default function Details() {
                             onSubmit={async (values, {setSubmitting}) => {
                                 await addPersonToEvent(dispatch, values);
                                 setSubmitting(false);
-                                await getEvent();
                             }}
                             validate={
                                 values => {
@@ -112,9 +118,9 @@ export default function Details() {
                     </div>
                     <div className='flex flex-row justify-evenly gap-4'>
                         <ul>
-                            {event.persons.map((person, index) => {
+                            {event.persons.map(person => {
                                 return (
-                                    <li key={index}>{person.firstName} {person.lastName}</li>
+                                    <li key={person.id}>{person.firstName} {person.lastName}</li>
                                 );
                             })}
                         </ul>
@@ -147,7 +153,6 @@ export default function Details() {
                                 };
                                 await addExpenseToEvent(dispatch, newItem);
                                 setSubmitting(false);
-                                await getEvent();
                             }}
                             validate={
                                 values => {
@@ -207,9 +212,12 @@ export default function Details() {
                     </div>
                     <div className='flex flex-row justify-evenly gap-4'>
                         <ul>
-                            {event.expenses.map((expense, index) => {
+                            {event.expenses.map(expense => {
                                 return (
-                                    <li key={index}>{expense.title} ({expense.person.firstName} {expense.person.lastName}) - {expense.amount}€</li>
+                                    <li key={expense.id} className='flex flex-row gap-1'>
+                                        <input type='checkbox' id={expense['@id']} checked={expense.paid} onChange={handlePaidStatusChange}/>
+                                        {expense.title} ({expense.person.firstName} {expense.person.lastName}) - {expense.amount}€
+                                    </li>
                                 );
                             })}
                         </ul>

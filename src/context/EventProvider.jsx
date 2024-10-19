@@ -68,16 +68,13 @@ export async function addPersonToEvent(dispatch, person) {
         });
 
         const personData = await response.json();
-        dispatch({type: 'addPerson', payload: personData.url})
+        dispatch({type: 'addPerson', payload: personData['@id']})
     } catch (e) {
         console.error(`Error adding person: ${e}`);
     }
 }
 
 export async function addExpenseToEvent(dispatch, expense) {
-    console.log('entering addExpense function');
-    console.log(`calling "${apiUrl}/expenses"`);
-    console.log(`expense: ${JSON.stringify(expense)}`);
     try {
         const response = await fetch(`${apiUrl}/expenses`, {
             method: 'POST',
@@ -88,9 +85,26 @@ export async function addExpenseToEvent(dispatch, expense) {
         });
 
         const expenseData = await response.json();
-        console.log(`expenseData: ${JSON.stringify(expenseData)}`);
+        dispatch({type: 'addExpense', payload: expenseData['@id']})
     } catch (e) {
         console.error(`Error adding expense: ${e}`);
+    }
+}
+
+export async function updatePaidStatus(dispatch, expense, paid) {
+    try {
+        const response = await fetch(`${apiUrl}/expenses/${expense.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/merge-patch+json',
+            },
+            body: JSON.stringify({...expense, paid: paid, person: expense.person['@id']}),
+        });
+
+        const expenseData = await response.json();
+        dispatch({type: 'setExpenseToPaid', payload: expenseData})
+    } catch (e) {
+        console.error(`Error setting expense to paid: ${e}`);
     }
 }
 
@@ -110,6 +124,18 @@ export function eventReducer(item, action) {
             return {...item, ...action.payload};
         case 'addPerson':
             return {...item, persons: [...item.persons, action.payload]};
+        case 'addExpense':
+            return {...item, expenses: [...item.expenses, action.payload]};
+        case 'setExpenseToPaid':
+            return {
+                ...item,
+                expenses: item.expenses.map(expense => {
+                    if (expense.id === action.payload.id) {
+                        return {...expense, paid: action.payload.paid};
+                    }
+                    return expense;
+                })
+            }
         case 'error':
             return {error: action.payload};
         case 'clearError':
