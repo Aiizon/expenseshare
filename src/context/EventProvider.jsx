@@ -17,30 +17,7 @@ export function EventProvider({children}) {
     );
 }
 
-export async function createEvent(dispatch, name) {
-    const newItem = {name: name, slug: slugify(name)};
-    if (name) {
-        const response = await fetch(`${apiUrl}/events`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/ld+json',
-            },
-            body: JSON.stringify(newItem),
-        });
-        const eventData = await response.json();
-        dispatch({
-            type: 'fetch', payload: {
-                name: eventData.name,
-                slug: eventData.slug,
-                persons: eventData.persons,
-                expenses: eventData.expenses,
-            }
-        });
-    }
-}
-
-export async function fetchEvent(dispatch, name) {
-    const slug = slugify(name);
+export async function fetchEvent(dispatch, slug) {
     const response = await fetch(`${apiUrl}/events/${slug}`);
     if (404 === response.status) {
         return dispatch({type: 'error', payload: 'Cet évènement n\'existe pas, veuillez réessayer.'});
@@ -55,6 +32,28 @@ export async function fetchEvent(dispatch, name) {
         }
     });
     dispatch({type: 'clearError'});
+}
+
+export async function createEvent(dispatch, name) {
+    const newItem = {name: name, slug: slugify(name)};
+    if (name) {
+        const response = await fetch(`${apiUrl}/events`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/ld+json',
+            },
+            body: JSON.stringify(newItem),
+        });
+        const eventData = await response.json();
+        dispatch({
+            type: 'create', payload: {
+                name: eventData.name,
+                slug: eventData.slug,
+                persons: eventData.persons,
+                expenses: eventData.expenses,
+            }
+        });
+    }
 }
 
 export async function addPersonToEvent(dispatch, person) {
@@ -118,9 +117,9 @@ export function useEventDispatch() {
 
 export function eventReducer(item, action) {
     switch (action.type) {
-        case 'create':
-            return {...item, ...action.payload};
         case 'fetch':
+            return {...item, ...action.payload};
+        case 'create':
             return {...item, ...action.payload};
         case 'addPerson':
             return {...item, persons: [...item.persons, action.payload]};
