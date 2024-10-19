@@ -18,6 +18,9 @@ export default function Details() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [categories, setCategories] = useState([]);
+    const [personFilter, setPersonFilter] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('');
+    const [amountRange, setAmountRange] = useState({min: '', max: ''});
 
     const getEvent = async () => {
         await fetchEvent(dispatch, slug);
@@ -57,6 +60,25 @@ export default function Details() {
         await updatePaidStatus(dispatch, expense, checked);
     }
 
+    const filterExpenses = () => {
+        return event.expenses.filter(expense => {
+            const matchesPerson = personFilter ? expense.person['@id'] === personFilter : true;
+            const matchesCategory = categoryFilter ? expense.category === categoryFilter : true;
+            const matchesAmount = (amountRange.min ? expense.amount >= parseInt(amountRange.min) : true) &&
+                (amountRange.max ? expense.amount <= parseInt(amountRange.max) : true);
+            return matchesPerson && matchesCategory && matchesAmount;
+        });
+    }
+
+    const resetFilters = () => {
+        setPersonFilter('');
+        setCategoryFilter('');
+        setAmountRange({min: '', max: ''});
+    }
+
+    useEffect(() => {
+    }, [personFilter, categoryFilter, amountRange]);
+
     if (isLoading) {
         return (
             <p className='flex flex-col grow h-max w-max content-center items-center'>Chargement...</p>
@@ -77,7 +99,8 @@ export default function Details() {
                         <h2 className='text-2xl'>Participants</h2>
                         <button className='size-10 bg-green-500 hover:bg-green-800 cursor-pointer text-white p-2 rounded-md' onClick={displayAddPersonModal}>+</button>
                     </div>
-                    <div id='addPersonModal' className='hidden'>
+                </div>
+                <div id='addPersonModal' className='hidden'>
                         <Formik
                             initialValues={{firstName: '', lastName: '', event: `${apiUrl}/events/${slug}`}}
                             onSubmit={async (values, {setSubmitting}) => {
@@ -127,101 +150,131 @@ export default function Details() {
                     </div>
                 </div>
                 <hr className='grow bg-gray-300 h-0.5'/>
-                <div className='flex flex-col gap-4'>
-                    <div className='flex flex-col justify-evenly'>
-                        <h2 className='text-2xl'>Dépenses</h2>
-                        <button className='size-10 bg-green-500 hover:bg-green-800 cursor-pointer text-white p-2 rounded-md' onClick={displayAddExpenseModal}>+</button>
-                    </div>
-                    <div id="addExpenseModal" className="hidden">
-                        <Formik
-                            initialValues={{
-                                title: '',
-                                amount: 0,
-                                paid: false,
-                                person: '',
-                                category: '',
-                                event: `${apiUrl}/events/${slug}`,
-                                createdAt: new Date().toISOString(),
-                                updatedAt: new Date().toISOString()}
-                            }
-                            onSubmit={async (values, {setSubmitting}) => {
-                                const newItem = {
-                                    ...values,
-                                    amount: values.amount.toString(),
-                                    person: `${apiUrl}/people/` + values.person,
-                                    category: `${apiUrl}/categories/` + values.category,
-                                };
-                                await addExpenseToEvent(dispatch, newItem);
-                                setSubmitting(false);
-                            }}
-                            validate={
-                                values => {
-                                    const errors = {};
-                                    if (!values.title) {
-                                        errors.title = 'Veuillez renseigner un titre.';
-                                    }
-                                    if (0 === values.amount) {
-                                        errors.amount = 'Veuillez renseigner un montant.';
-                                    }
-                                    if (!values.person) {
-                                        errors.person = 'Veuillez renseigner une personne.';
-                                    }
-                                    if (!values.category) {
-                                        errors.category = 'Veuillez renseigner une catégorie.';
-                                    }
-                                    return errors;
+            <div className='flex flex-col gap-4'>
+                <div className='flex flex-col justify-evenly'>
+                    <h2 className='text-2xl'>Dépenses</h2>
+                    <button className='size-10 bg-green-500 hover:bg-green-800 cursor-pointer text-white p-2 rounded-md'
+                            onClick={displayAddExpenseModal}>+
+                    </button>
+                </div>
+                <div className='flex flex-row justify-evenly gap-4'>
+                    <select value={personFilter} onChange={e => setPersonFilter(e.target.value)} className='p-2 rounded-md'>
+                        <option value=''>Filtrer par personne</option>
+                        {event.persons.map(person => (
+                            <option key={person.id} value={person['@id']}>{person.firstName} {person.lastName}</option>
+                        ))}
+                    </select>
+                    <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className='p-2 rounded-md'>
+                        <option value=''>Filtrer par catégorie</option>
+                        {categories.map(category => (
+                            <option key={category.id} value={category['@id']}>{category.name}</option>
+                        ))}
+                    </select>
+                    <input type='number' placeholder='Montant min' value={amountRange.min} onChange={e => setAmountRange({...amountRange, min: e.target.value})} className='p-2 rounded-md'/>
+                    <input type='number' placeholder='Montant max' value={amountRange.max} onChange={e => setAmountRange({...amountRange, max: e.target.value})} className='p-2 rounded-md'/>
+                    <button className=''></button>
+                    <button className='bg-red-500 hover:bg-red-800 cursor-pointer text-white p-2 rounded-md' onClick={resetFilters}>Réinitialiser</button>
+                </div>
+                <div id="addExpenseModal" className="hidden">
+                    <Formik
+                        initialValues={{
+                            title: '',
+                            amount: 0,
+                            paid: false,
+                            person: '',
+                            category: '',
+                            event: `${apiUrl}/events/${slug}`,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        }
+                        }
+                        onSubmit={async (values, {setSubmitting}) => {
+                            const newItem = {
+                                ...values,
+                                amount: values.amount.toString(),
+                                person: `${apiUrl}/people/` + values.person,
+                                category: `${apiUrl}/categories/` + values.category,
+                            };
+                            await addExpenseToEvent(dispatch, newItem);
+                            setSubmitting(false);
+                        }}
+                        validate={
+                            values => {
+                                const errors = {};
+                                if (!values.title) {
+                                    errors.title = 'Veuillez renseigner un titre.';
                                 }
+                                if (0 === values.amount) {
+                                    errors.amount = 'Veuillez renseigner un montant.';
+                                }
+                                if (!values.person) {
+                                    errors.person = 'Veuillez renseigner une personne.';
+                                }
+                                if (!values.category) {
+                                    errors.category = 'Veuillez renseigner une catégorie.';
+                                }
+                                return errors;
                             }
-                        >
-                            {({
-                                  values,
-                                  errors,
-                                  touched,
-                                  handleChange,
-                                  handleBlur,
-                                  handleSubmit,
-                                  isSubmitting
-                            }) => (
-                                <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-                                    <input type='text' name='title' placeholder='Titre' onChange={handleChange} onBlur={handleBlur} value={values.title} className='p-2 rounded-md'/>
-                                    {errors.title && touched.title && <p className='text-red-500'>{errors.title}</p>}
-                                    <input type='number' name='amount' placeholder='Montant' onChange={handleChange} onBlur={handleBlur} value={values.amount} className='p-2 rounded-md'/>
-                                    {errors.amount && touched.amount && <p className='text-red-500'>{errors.amount}</p>}
-                                    <select name='person' onChange={handleChange} onBlur={handleBlur} value={values.person} className='p-2 rounded-md'>
-                                        <option value=''>Choisir une personne</option>
-                                        {event.persons.map((person, index) => {
-                                            return (
-                                                <option key={index} value={person.id}>{person.firstName} {person.lastName}</option>
-                                            );
-                                        })}
-                                    </select>
-                                    {errors.person && touched.person && <p className='text-red-500'>{errors.person}</p>}
-                                    <select name='category' onChange={handleChange} onBlur={handleBlur} value={values.category} className='p-2 rounded-md'>
-                                        <option value=''>Choisir une catégorie</option>
-                                        {categories?.map((category, index) => {
-                                            return (
-                                                <option key={index} value={category.id}>{category.name}</option>
-                                            );
-                                        })}
-                                    </select>
-                                    {errors.category && touched.category && <p className='text-red-500'>{errors.category}</p>}
-                                    <button type='submit' disabled={isSubmitting} className='bg-green-500 hover:bg-green-800 cursor-pointer text-white p-2 rounded-md'>Ajouter</button>
-                                </form>
-                            )}
-                        </Formik>
-                    </div>
-                    <div className='flex flex-row justify-evenly gap-4'>
-                        <ul>
-                            {event.expenses.map(expense => {
-                                return (
-                                    <li key={expense.id} className='flex flex-row gap-1'>
-                                        <input type='checkbox' id={expense['@id']} checked={expense.paid} onChange={handlePaidStatusChange}/>
-                                        {expense.title} ({expense.person.firstName} {expense.person.lastName}) - {expense.amount}€
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
+                        }
+                    >
+                        {({
+                              values,
+                              errors,
+                              touched,
+                              handleChange,
+                              handleBlur,
+                              handleSubmit,
+                              isSubmitting
+                          }) => (
+                            <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
+                                <input type='text' name='title' placeholder='Titre' onChange={handleChange}
+                                       onBlur={handleBlur} value={values.title} className='p-2 rounded-md'/>
+                                {errors.title && touched.title && <p className='text-red-500'>{errors.title}</p>}
+                                <input type='number' name='amount' placeholder='Montant' onChange={handleChange}
+                                       onBlur={handleBlur} value={values.amount} className='p-2 rounded-md'/>
+                                {errors.amount && touched.amount && <p className='text-red-500'>{errors.amount}</p>}
+                                <select name='person' onChange={handleChange} onBlur={handleBlur} value={values.person}
+                                        className='p-2 rounded-md'>
+                                    <option value=''>Choisir une personne</option>
+                                    {event.persons.map((person, index) => {
+                                        return (
+                                            <option key={index}
+                                                    value={person.id}>{person.firstName} {person.lastName}</option>
+                                        );
+                                    })}
+                                </select>
+                                {errors.person && touched.person && <p className='text-red-500'>{errors.person}</p>}
+                                <select name='category' onChange={handleChange} onBlur={handleBlur}
+                                        value={values.category} className='p-2 rounded-md'>
+                                    <option value=''>Choisir une catégorie</option>
+                                    {categories?.map((category, index) => {
+                                        return (
+                                            <option key={index} value={category.id}>{category.name}</option>
+                                        );
+                                    })}
+                                </select>
+                                {errors.category && touched.category &&
+                                    <p className='text-red-500'>{errors.category}</p>}
+                                <button type='submit' disabled={isSubmitting}
+                                        className='bg-green-500 hover:bg-green-800 cursor-pointer text-white p-2 rounded-md'>Ajouter
+                                </button>
+                            </form>
+                        )}
+                    </Formik>
+                </div>
+                <div className='flex flex-row justify-evenly gap-4'>
+                    <ul>
+                        {filterExpenses().map(expense => {
+                            return (
+                                <li key={expense.id} className='flex flex-row gap-1'>
+                                    <input type='checkbox' id={expense['@id']} checked={expense.paid}
+                                           onChange={handlePaidStatusChange}/>
+                                    {expense.title} ({expense.person.firstName} {expense.person.lastName})
+                                    - {expense.amount}€
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </div>
             </div>
         </div>
