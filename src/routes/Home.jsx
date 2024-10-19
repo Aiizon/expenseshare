@@ -43,17 +43,24 @@ export default function Home() {
     };
 
     return (
-        <div className='flex flex-col grow justify-between gap-4'>
+        <div className='flex flex-col gap-4 mt-4'>
             <div className='flex flex-col gap-4'>
-                <h2 className='text-2xl'>Rechercher un évènement</h2>
+                <h1 className='flex grow justify-center text-5xl'>Expenseshare - Gérez vos dépenses</h1>
+                <p className='flex grow justify-center text-xl text-center'>
+                    Expenseshare est une application web qui vous permet de gérer les dépenses d'un évènement entre plusieurs personnes. <br/>
+                    Entrez le code d'un évènement ou créez un évènement à partir d'un nom pour commencer.
+                </p>
+            </div>
+            <div className='flex flex-col grow gap-20 pt-20'>
+                <h2 className='flex justify-center text-2xl'>Rechercher un évènement</h2>
                 <div className='flex flex-row justify-evenly gap-4'>
                     <Input value={searchInput} onChange={e => setSearchInput(e.target.value)} placeholder='Rechercher un évènement...' type='text'></Input>
                     {event.error && 'search' === lastInput && <p className='text-red-500'>{event.error}</p>}
                     <button onClick={handleEventSearch} className='w-1/4 bg-blue-500 text-white p-2 rounded-md'>Rechercher</button>
                 </div>
-                <hr className='grow bg-gray-300 h-0.5'/>
+                <hr className='bg-gray-300 h-0.5 my-4'/>
                 <div className='flex flex-col gap-4'>
-                    <h2 className='text-2xl'>Créer un évènement</h2>
+                    <h2 className='flex justify-center text-2xl'>Créer un évènement</h2>
                     <div className='flex flex-row justify-evenly gap-4'>
                         {event.error && 'create' === lastInput && <p className='text-red-500'>{event.error}</p>}
                         <Input value={createInput} onChange={e => setCreateInput(e.target.value)} placeholder='Créer un évènement...' type='text'></Input>
