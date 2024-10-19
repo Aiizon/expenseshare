@@ -172,7 +172,6 @@ export default function Details() {
                     </select>
                     <input type='number' placeholder='Montant min' value={amountRange.min} onChange={e => setAmountRange({...amountRange, min: e.target.value})} className='p-2 rounded-md'/>
                     <input type='number' placeholder='Montant max' value={amountRange.max} onChange={e => setAmountRange({...amountRange, max: e.target.value})} className='p-2 rounded-md'/>
-                    <button className=''></button>
                     <button className='bg-red-500 hover:bg-red-800 cursor-pointer text-white p-2 rounded-md' onClick={resetFilters}>Réinitialiser</button>
                 </div>
                 <div id="addExpenseModal" className="hidden">
