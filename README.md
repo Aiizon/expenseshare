@@ -6,6 +6,21 @@ L’application Expenshare a pour but de simplifier les dépenses en groupe lors
 
 Le but est d’enregistrer dans une base de données l’ensemble des dépenses lors d’un événement afin de simplifier le remboursement par la suite.
 
+## Installation
+
+Pour installer le projet, clonez le dépôt et installez les dépendances avec la commande suivante :
+
+```bash
+npm install
+```
+Ensuite, copiez-collez le fichier .env.dist avec le nom .env et mettez à jour les variables d'environnement.
+
+Enfin, lancez le serveur de développement avec la commande suivante :
+
+```bash
+npm run dev
+```
+
 ## Concurrence
 Il existe déjà des applications concurrentes. En voici quelques-unes :
 - [Tricount](https://www.tricount.com)
