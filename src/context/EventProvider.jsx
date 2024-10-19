@@ -58,9 +58,6 @@ export async function fetchEvent(dispatch, name) {
 }
 
 export async function addPersonToEvent(dispatch, person) {
-    console.log('entering addPerson function');
-    console.log(`calling "${apiUrl}/people"`);
-    console.log(`person: ${JSON.stringify(person)}`);
     try {
         const response = await fetch(`${apiUrl}/people`, {
             method: 'POST',
@@ -74,6 +71,26 @@ export async function addPersonToEvent(dispatch, person) {
         dispatch({type: 'addPerson', payload: personData.url})
     } catch (e) {
         console.error(`Error adding person: ${e}`);
+    }
+}
+
+export async function addExpenseToEvent(dispatch, expense) {
+    console.log('entering addExpense function');
+    console.log(`calling "${apiUrl}/expenses"`);
+    console.log(`expense: ${JSON.stringify(expense)}`);
+    try {
+        const response = await fetch(`${apiUrl}/expenses`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/ld+json',
+            },
+            body: JSON.stringify(expense),
+        });
+
+        const expenseData = await response.json();
+        console.log(`expenseData: ${JSON.stringify(expenseData)}`);
+    } catch (e) {
+        console.error(`Error adding expense: ${e}`);
     }
 }
 
