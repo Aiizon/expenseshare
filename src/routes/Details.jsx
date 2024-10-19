@@ -75,8 +75,8 @@ export default function Details() {
                             initialValues={{firstName: '', lastName: '', event: `${apiUrl}/events/${slug}`}}
                             onSubmit={async (values, {setSubmitting}) => {
                                 await addPersonToEvent(dispatch, values);
-                                // await new Promise(r => setTimeout(r, 300));
                                 setSubmitting(false);
+                                await getEvent();
                             }}
                             validate={
                                 values => {
@@ -147,6 +147,7 @@ export default function Details() {
                                 };
                                 await addExpenseToEvent(dispatch, newItem);
                                 setSubmitting(false);
+                                await getEvent();
                             }}
                             validate={
                                 values => {
@@ -208,7 +209,7 @@ export default function Details() {
                         <ul>
                             {event.expenses.map((expense, index) => {
                                 return (
-                                    <li key={index}>{expense.title} - {expense.amount}€</li>
+                                    <li key={index}>{expense.title} ({expense.person.firstName} {expense.person.lastName}) - {expense.amount}€</li>
                                 );
                             })}
                         </ul>
