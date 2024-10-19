@@ -1,19 +1,25 @@
-import {useEvent, useEventDispatch, fetchEvent} from "../context/EventProvider.jsx";
+import {useEvent, useEventDispatch, fetchEvent, createEvent} from "../context/EventProvider.jsx";
 import Input from "../components/Input.jsx";
 import {useState} from "react";
+import {useNavigate} from "react-router-dom";
 
 export default function Home() {
     const [input, setInput] = useState('');
     const dispatch = useEventDispatch();
     const event = useEvent();
+    const navigate = useNavigate();
 
-    const handleEventCreation = () => {
-        dispatch({type: 'create', payload: input});
+    const handleEventCreation = async () => {
+        await createEvent(dispatch, input);
+        navigate('/details/' + event.slug);
     };
 
     const handleEventSearch = async () => {
         await fetchEvent(dispatch, input);
+        navigate('/details/' + event.slug);
     };
+
+    // @todo: centraliser les deux champs, avoir les boutons recherche & création de chaque coté (+ erreur recherche en dessous)
 
     return (
         <div className='flex flex-col grow justify-between gap-4'>
